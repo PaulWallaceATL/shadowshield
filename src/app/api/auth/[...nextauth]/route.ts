@@ -115,37 +115,17 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       console.log('NextAuth redirect callback - URL:', url);
       console.log('NextAuth redirect callback - Base URL:', baseUrl);
-      
-      // Handle sign in redirects
+
+      // Allow only same-origin absolute URLs.
       if (url.startsWith(baseUrl)) {
-        try {
-          // Get the user's token to check their role
-          const token = await prisma.session.findFirst({
-            orderBy: { expires: 'desc' },
-            include: { user: true },
-          });
-
-          console.log('NextAuth redirect - User mustChangePassword:', token?.user?.mustChangePassword);
-
-          if (token?.user) {
-            // First check if user must change password - this must take priority!
-            if (token.user.mustChangePassword === true) {
-              console.log('User must change password, forcing redirect to change-password');
-              return `${baseUrl}/auth/change-password`;
-            }
-            
-            // Otherwise redirect based on role
-            if (token.user.role === 'USER') {
-              return `${baseUrl}/chat`;
-            } else if (['ADMIN', 'SUPER_ADMIN'].includes(token.user.role)) {
-              return `${baseUrl}/admin`;
-            }
-          }
-        } catch (error) {
-          console.error('Error in NextAuth redirect callback:', error);
-        }
+        return url;
       }
-      return url;
+      // Allow relative URLs.
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+      // Fallback to home for unknown origins.
+      return baseUrl;
     }
   },
   pages: {
