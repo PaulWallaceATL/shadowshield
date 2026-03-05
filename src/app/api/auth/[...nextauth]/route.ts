@@ -102,26 +102,25 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
-        console.log('NextAuth JWT callback - User data:', {
-          id: user.id,
-          email: user.email, 
-          role: user.role,
-          mustChangePassword: user.mustChangePassword
-        });
-        
         token.role = user.role;
         token.department = user.department;
-        
-        // Explicitly set mustChangePassword as a boolean
         token.mustChangePassword = user.mustChangePassword === true;
-        
-        console.log('NextAuth JWT callback - Token data after update:', {
-          role: token.role,
-          mustChangePassword: token.mustChangePassword
-        });
       }
+
+      if (trigger === "update" && token.sub) {
+        const freshUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true, department: true, mustChangePassword: true },
+        });
+        if (freshUser) {
+          token.role = freshUser.role;
+          token.department = freshUser.department;
+          token.mustChangePassword = freshUser.mustChangePassword === true;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {

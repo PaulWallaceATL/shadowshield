@@ -57,27 +57,16 @@ export default function ChangePassword() {
         throw new Error(data.error || 'Failed to change password');
       }
 
-      console.log('Password changed successfully');
-      console.log('User role:', session?.user?.role);
-      
-      // Instead of trying to update the session in-place and redirect,
-      // we'll sign out the user and redirect them to the appropriate page
-      // This ensures a completely fresh session is loaded with the updated flag
-      
-      const redirectUrl = 
-        session?.user?.role === 'USER' 
-          ? '/chat' 
-          : ['ADMIN', 'SUPER_ADMIN'].includes(session?.user?.role as string) 
-            ? '/admin' 
+      // Refresh the JWT so mustChangePassword is updated from the DB
+      await update();
+
+      const redirectUrl =
+        session?.user?.role === 'USER'
+          ? '/chat'
+          : ['ADMIN', 'SUPER_ADMIN'].includes(session?.user?.role as string)
+            ? '/admin'
             : '/';
-      
-      console.log(`Signing out and redirecting to ${redirectUrl}`);
-      
-      // Sign out and redirect to the appropriate page
-      // The user will be automatically signed back in due to the persistent session
-      await signOut({ redirect: false });
-      
-      // Use window.location for a full page reload to clear any stale state
+
       window.location.href = redirectUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
