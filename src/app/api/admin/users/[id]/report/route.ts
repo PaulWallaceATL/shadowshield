@@ -12,7 +12,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user?.role || !['SUPER_ADMIN', 'ADMIN', 'SECURITY_OFFICER'].includes(session.user.role)) {
+    if (!session?.user?.role || !['SUPER_ADMIN', 'ADMIN'].includes(session.user.role)) {
       console.error("Unauthorized access attempt:", session?.user);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

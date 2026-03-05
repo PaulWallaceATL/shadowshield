@@ -8,7 +8,7 @@ import { DLPType, DLPAction, Severity } from "@prisma/client";
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.role || !['SUPER_ADMIN', 'ADMIN', 'SECURITY_OFFICER'].includes(session.user.role)) {
+    if (!session?.user?.role || !['SUPER_ADMIN', 'ADMIN'].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -27,7 +27,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.role || !['SUPER_ADMIN', 'ADMIN', 'SECURITY_OFFICER'].includes(session.user.role)) {
+    if (!session?.user?.role || !['SUPER_ADMIN', 'ADMIN'].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.role || !['SUPER_ADMIN', 'ADMIN', 'SECURITY_OFFICER'].includes(session.user.role)) {
+    if (!session?.user?.role || !['SUPER_ADMIN', 'ADMIN'].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -123,7 +123,7 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.role || !['SUPER_ADMIN', 'ADMIN', 'SECURITY_OFFICER'].includes(session.user.role)) {
+    if (!session?.user?.role || !['SUPER_ADMIN', 'ADMIN'].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

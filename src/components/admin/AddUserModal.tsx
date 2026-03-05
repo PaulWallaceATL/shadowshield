@@ -235,7 +235,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, temporaryPassw
                           >
                             <option value="USER">User</option>
                             <option value="ADMIN">Admin</option>
-                            <option value="SECURITY_OFFICER">Security Officer</option>
+                            <option value="SUPER_ADMIN">Super Admin</option>
                           </select>
                         </motion.div>
                         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">

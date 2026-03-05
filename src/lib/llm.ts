@@ -213,59 +213,17 @@ export async function queryLLM(
             
             console.log('Sending request to Google AI with model:', apiModelName);
             
-            // For gemini-pro, use the simpler generateContent API instead of chat
-            if (model === 'gemini-pro') {
-              console.log('Using generateContent API for gemini-pro');
-              // Simple text prompt without chat format
-              const result = await geminiModel.generateContent(content);
-              const response = await result.response;
-              const text = response.text();
-              
-              console.log('Received response from Google AI:', {
-                text: text
-              });
-              
-              return {
-                content: text,
-                latency: Date.now() - startTime,
-                tokens: 0, // Google doesn't provide token count
-                provider,
-                model,
-              };
-            } else {
-              // For other models (like gemini-1.5-pro), use the chat API
-              // Add a system prompt to make the purpose clearer
-              const chatSession = geminiModel.startChat({
-                generationConfig,
-                history: [
-                  {
-                    role: "user",
-                    parts: "You are an AI assistant. Your responses should be helpful, accurate, and safe. Please respond naturally to my questions."
-                  },
-                  {
-                    role: "model",
-                    parts: "I understand. I'm an AI assistant designed to be helpful, accurate, and safe. I'll respond naturally to your questions without disclosing internal details about my architecture or training data. How can I help you today?"
-                  }
-                ]
-              });
+            const result = await geminiModel.generateContent(content);
+            const response = await result.response;
+            const text = response.text();
 
-              // Add the query to the chat
-              const result = await chatSession.sendMessage(content);
-              const response = await result.response;
-              const text = response.text();
-              
-              console.log('Received response from Google AI via chat:', {
-                text: text
-              });
-
-              return {
-                content: text,
-                latency: Date.now() - startTime,
-                tokens: 0, // Google doesn't provide token count
-                provider,
-                model, // Return the actual model used
-              };
-            }
+            return {
+              content: text,
+              latency: Date.now() - startTime,
+              tokens: 0,
+              provider,
+              model,
+            };
           } catch (modelError) {
             console.error('Error with model format, trying alternative format:', modelError);
             throw modelError; // Re-throw to be handled by outer catch
@@ -280,21 +238,17 @@ export async function queryLLM(
             apiKeyPrefix: apiKey.substring(0, 10) + '...'
           });
           
-          // Provide more meaningful error for content policy violations
-          if (googleError instanceof Error && 
-              (googleError.message.includes('content violates') || 
-               googleError.message.includes('blocked') || 
-               googleError.message.includes('safety'))) {
-            throw new Error(
-              `Google Gemini content policy violation: ${googleError.message}. Try rephrasing your query to comply with Google's content safety guidelines.`
-            );
+          const msg = googleError instanceof Error ? googleError.message : String(googleError);
+
+          if (msg.includes('quota') || msg.includes('429') || msg.includes('Too Many Requests')) {
+            throw new Error('Google Gemini API quota exceeded. Please check your billing at https://ai.google.dev or try another provider.');
           }
-          
-          throw new Error(
-            googleError instanceof Error 
-              ? `Google API error: ${googleError.message}`
-              : 'Failed to query Google API'
-          );
+
+          if (msg.includes('content violates') || msg.includes('blocked') || msg.includes('safety')) {
+            throw new Error(`Google Gemini content policy: ${msg}. Try rephrasing your query.`);
+          }
+
+          throw new Error(`Google API error: ${msg}`);
         }
       }
 

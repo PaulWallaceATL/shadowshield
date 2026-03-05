@@ -95,7 +95,7 @@ export async function PUT(
     const { role, isActive, department } = await req.json();
 
     // Validate role
-    const validRoles = ['USER', 'ADMIN', 'SECURITY_OFFICER'] as const;
+    const validRoles = ['USER', 'ADMIN', 'SUPER_ADMIN'] as const;
     if (role && !validRoles.includes(role as typeof validRoles[number])) {
       return new NextResponse(
         JSON.stringify({ error: "Invalid role specified" }),

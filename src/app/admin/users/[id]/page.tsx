@@ -410,10 +410,10 @@ export default function UserDetailsPage() {
                 {isDeactivating ? 'Deactivating...' : 'Deactivate User'}
               </button>
               <button
-                onClick={() => router.push(`/admin/users/${user.id}/edit`)}
+                onClick={() => router.push(`/admin/users/${user.id}/chats`)}
                 className="flex-1 px-4 py-2 bg-[#00a0cb] hover:bg-[#0090b7] text-white rounded-lg transition-colors"
               >
-                Edit User
+                View Chats
               </button>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-type Role = 'USER' | 'ADMIN' | 'SECURITY_OFFICER';
+type Role = 'USER' | 'ADMIN' | 'SUPER_ADMIN';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');

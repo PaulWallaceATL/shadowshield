@@ -172,7 +172,7 @@ export default function ChatDetailPage({ params }: { params: Promise<{ id: strin
     }
   };
 
-  if (!session?.user || !['ADMIN', 'SECURITY_OFFICER'].includes(session.user.role as string)) {
+  if (!session?.user || !['ADMIN', 'SUPER_ADMIN'].includes(session.user.role as string)) {
     notFound();
   }
 

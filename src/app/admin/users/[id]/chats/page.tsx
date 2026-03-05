@@ -37,7 +37,7 @@ export default async function UserChatsPage({ params }: { params: Promise<{ id: 
   const resolvedParams = await params;
   const session = await getServerSession(authOptions);
   
-  if (!session?.user || !['ADMIN', 'SECURITY_OFFICER'].includes(session.user.role as string)) {
+  if (!session?.user || !['ADMIN', 'SUPER_ADMIN'].includes(session.user.role as string)) {
     notFound();
   }
 

@@ -8,7 +8,7 @@ import { encrypt, decrypt } from "@/lib/crypto";
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.role || !['ADMIN', 'SECURITY_OFFICER'].includes(session.user.role)) {
+    if (!session?.user?.role || !['ADMIN', 'SUPER_ADMIN'].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -39,7 +39,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.role || !['ADMIN', 'SECURITY_OFFICER'].includes(session.user.role)) {
+    if (!session?.user?.role || !['ADMIN', 'SUPER_ADMIN'].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
