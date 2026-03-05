@@ -33,14 +33,15 @@ async function getUserChats(userId: string): Promise<{ user: { name: string | nu
   };
 }
 
-export default async function UserChatsPage({ params }: { params: { id: string } }) {
+export default async function UserChatsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const session = await getServerSession(authOptions);
   
   if (!session?.user || !['ADMIN', 'SECURITY_OFFICER'].includes(session.user.role as string)) {
     notFound();
   }
 
-  const result = await getUserChats(params.id);
+  const result = await getUserChats(resolvedParams.id);
 
   if (!result) {
     notFound();
@@ -60,7 +61,7 @@ export default async function UserChatsPage({ params }: { params: { id: string }
           </p>
         </div>
         <Link
-          href={`/admin/users/${params.id}`}
+          href={`/admin/users/${resolvedParams.id}`}
           className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#190b37]"
         >
           Back to User Details

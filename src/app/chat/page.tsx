@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useContext, createContext, useEffect, useRef } from 'react';
+import { useState, useContext, createContext, useEffect, useRef, Suspense } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { 
   PaperAirplaneIcon, 
@@ -24,7 +24,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { MotionSelect } from '@/components/ui/MotionSelect';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import CustomPopup from '@/components/ui/CustomPopup';
 import { TemperatureSlider } from '@/components/ui/TemperatureSlider';
@@ -289,7 +289,7 @@ const samplePrompts = [
 
 const ChatPage = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { data: session, status } = useSession();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const currentChatRef = useRef<string | null>(null);
@@ -304,7 +304,7 @@ const ChatPage = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [chat, setChat] = useState<Chat | null>(null);
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(searchParams.get('chatId'));
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isChatLoading, setIsChatLoading] = useState(false);
@@ -367,9 +367,10 @@ const ChatPage = () => {
 
   // Update the URL effect handler
   useEffect(() => {
-    const chatId = searchParams.get('chatId');
-    const urlProvider = searchParams.get('provider') as Provider;
-    const urlModel = searchParams.get('model');
+    const params = new URLSearchParams(window.location.search);
+    const chatId = params.get('chatId');
+    const urlProvider = params.get('provider') as Provider;
+    const urlModel = params.get('model');
     
     // Update provider and model if present in URL
     if (urlProvider && urlModel) {
@@ -431,7 +432,7 @@ const ChatPage = () => {
     };
 
     loadChat();
-  }, [searchParams]);
+  }, [pathname]);
 
   // Add fetchChats function
   useEffect(() => {
@@ -1071,7 +1072,7 @@ const ChatPage = () => {
         className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 bg-gradient-to-b from-gray-50 to-white"
       >
         {/* Dashboard or Chat View */}
-        {messages.length === 0 && !searchParams.get('chatId') ? (
+        {messages.length === 0 && !selectedChatId ? (
           <motion.div 
             className="w-full max-w-7xl mx-auto p-6 md:p-10"
             initial={{ opacity: 0 }}
@@ -1236,7 +1237,7 @@ const ChatPage = () => {
           </motion.div>
         ) : (
           <div className="space-y-6 max-w-5xl mx-auto">
-            {messages.length === 0 && searchParams.get('chatId') ? (
+            {messages.length === 0 && selectedChatId ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <img src="/SSdark.svg" alt="Shadow Shield" className="h-24 w-auto mb-6" />
                 <h2 className="text-2xl md:text-3xl font-semibold text-[#190b37] mb-3">Start a new conversation</h2>
@@ -1390,7 +1391,7 @@ const ChatPage = () => {
       )}
 
       {/* Only show input form when in chat mode with messages or chatId */}
-      {(messages.length > 0 || searchParams.get('chatId')) && (
+      {(messages.length > 0 || selectedChatId) && (
         <>
           {/* Mobile view filters - Only show on mobile when we have messages or a chatId */}
           {isMobile && (
@@ -1503,4 +1504,10 @@ const ChatPage = () => {
   );
 };
 
-export default ChatPage;
+export default function ChatPageWithSuspense() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#190b37]" />}>
+      <ChatPage />
+    </Suspense>
+  );
+}

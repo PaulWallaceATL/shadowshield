@@ -5,13 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -21,7 +17,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
 
     // Get user details
     const user = await prisma.user.findUnique({
@@ -123,6 +119,19 @@ export async function GET(
 
 async function generateAIReport(userData: any) {
   try {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return {
+        summary: "AI report generation is unavailable because OPENAI_API_KEY is not configured.",
+        activityBreakdown: [],
+        usagePatterns: "Not available",
+        securityInsights: "Not available",
+        recommendations: ["Set OPENAI_API_KEY in your deployment environment and retry report generation."],
+        generatedAt: new Date().toISOString(),
+      };
+    }
+
+    const openai = new OpenAI({ apiKey });
     const prompt = `
       Generate a comprehensive user activity report based on the following data:
       

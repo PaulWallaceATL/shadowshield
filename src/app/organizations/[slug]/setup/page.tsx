@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { use } from 'react';
 
 type APIKeys = {
   anthropic?: string;
@@ -12,7 +13,8 @@ type APIKeys = {
   amazonMacie?: string;
 };
 
-export default function OrganizationSetup({ params }: { params: { slug: string } }) {
+export default function OrganizationSetup({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = use(params);
   const [apiKeys, setApiKeys] = useState<APIKeys>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -26,7 +28,7 @@ export default function OrganizationSetup({ params }: { params: { slug: string }
     setIsLoading(true);
 
     try {
-      const res = await fetch(`/api/organizations/${params.slug}/settings`, {
+      const res = await fetch(`/api/organizations/${resolvedParams.slug}/settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -47,7 +49,7 @@ export default function OrganizationSetup({ params }: { params: { slug: string }
       }
 
       setSuccessMessage('Settings updated successfully');
-      router.push(`/organizations/${params.slug}/dashboard`);
+      router.push(`/organizations/${resolvedParams.slug}/dashboard`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {

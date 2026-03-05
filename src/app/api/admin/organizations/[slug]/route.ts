@@ -13,7 +13,7 @@ type OrganizationMember = {
 
 export async function GET(
   req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -23,12 +23,13 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!params?.slug) {
+    const { slug } = await params;
+    if (!slug) {
       return NextResponse.json({ error: "Organization slug is required" }, { status: 400 });
     }
 
     const organization = await prisma.organization.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
         members: {
           include: {
@@ -58,7 +59,7 @@ export async function GET(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -68,12 +69,13 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!params?.slug) {
+    const { slug } = await params;
+    if (!slug) {
       return NextResponse.json({ error: "Organization slug is required" }, { status: 400 });
     }
 
     const organization = await prisma.organization.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
         members: {
           include: {

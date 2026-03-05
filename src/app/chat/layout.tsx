@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Fragment, useRef } from 'react';
+import { useState, useEffect, Fragment, useRef, Suspense } from 'react';
 import { useSession, signOut } from "next-auth/react";
 import { redirect, useRouter, useSearchParams, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -50,7 +50,7 @@ const modelOptions: Record<Provider, ModelOption[]> = {
   ],
 };
 
-export default function ChatLayout({
+function ChatLayoutContent({
   children,
 }: {
   children: React.ReactNode;
@@ -1150,4 +1150,16 @@ export default function ChatLayout({
       )}
     </div>
   );
-} 
+}
+
+export default function ChatLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#190b37]" />}>
+      <ChatLayoutContent>{children}</ChatLayoutContent>
+    </Suspense>
+  );
+}

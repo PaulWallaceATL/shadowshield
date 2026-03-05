@@ -7,7 +7,7 @@ import crypto from 'crypto';
 
 export async function POST(
   req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,9 +15,11 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { slug } = await params;
+
     // Get organization and check if user is an admin/owner
     const organization = await prisma.organization.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
         members: {
           where: { userId: session.user.id },
@@ -43,7 +45,7 @@ export async function POST(
     // Check if user is already a member
     const existingMember = await prisma.organizationMember.findFirst({
       where: {
-        organization: { slug: params.slug },
+        organization: { slug },
         user: { email }
       }
     });
@@ -58,7 +60,7 @@ export async function POST(
     // Check for existing invite
     const existingInvite = await prisma.organizationInvite.findFirst({
       where: {
-        organization: { slug: params.slug },
+        organization: { slug },
         email,
         usedAt: null,
         expiresAt: { gt: new Date() }
@@ -110,7 +112,7 @@ export async function POST(
 
 export async function GET(
   req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -118,9 +120,11 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { slug } = await params;
+
     // Get organization and check if user is a member
     const organization = await prisma.organization.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
         members: {
           where: { userId: session.user.id },

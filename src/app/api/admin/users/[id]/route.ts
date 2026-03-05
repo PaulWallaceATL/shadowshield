@@ -6,7 +6,7 @@ import { Role, Prisma } from "@prisma/client";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: Promise<string> } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = await params.id;
+    const { id: userId } = await params;
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
@@ -77,7 +77,7 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -107,8 +107,9 @@ export async function PUT(
     }
 
     // Update user
+    const { id } = await params;
     const user = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(role && { role: role as Role }),
         ...(typeof isActive === 'boolean' && { isActive }),

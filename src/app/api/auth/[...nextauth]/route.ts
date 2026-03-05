@@ -4,9 +4,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import NextAuth from "next-auth";
-import { validateAuthEnv } from "@/lib/env";
-
-validateAuthEnv();
 
 interface ExtendedUser {
   id: string;

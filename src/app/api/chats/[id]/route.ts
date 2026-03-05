@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +17,7 @@ export async function GET(
       );
     }
 
-    const { id: chatId } = params;
+    const { id: chatId } = await params;
     
     if (!chatId) {
       return new NextResponse(
@@ -80,7 +80,7 @@ export async function GET(
 // Delete a specific chat
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -92,7 +92,7 @@ export async function DELETE(
       );
     }
 
-    const { id: chatId } = params;
+    const { id: chatId } = await params;
     
     if (!chatId) {
       return new NextResponse(

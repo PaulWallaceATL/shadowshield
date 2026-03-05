@@ -8,7 +8,7 @@ import crypto from 'crypto';
 
 export async function POST(
   req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -24,9 +24,11 @@ export async function POST(
       }, { status: 400 });
     }
 
+    const { slug } = await params;
+
     // Get organization
     const organization = await prisma.organization.findUnique({
-      where: { slug: params.slug }
+      where: { slug }
     });
 
     if (!organization) {
@@ -134,7 +136,7 @@ function generateTemporaryPassword(): string {
 
 export async function PUT(
   req: Request,
-  { params }: { params: { slug: string; memberId: string } }
+  { params }: { params: Promise<{ slug: string; memberId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -150,11 +152,13 @@ export async function PUT(
       }, { status: 400 });
     }
 
+    const { slug, memberId } = await params;
+
     // Update member role
     const member = await prisma.organizationMember.update({
       where: {
-        id: params.memberId,
-        organization: { slug: params.slug }
+        id: memberId,
+        organization: { slug }
       },
       data: { role },
       include: {
@@ -180,7 +184,7 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { slug: string; memberId: string } }
+  { params }: { params: Promise<{ slug: string; memberId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -188,11 +192,13 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { slug, memberId } = await params;
+
     // Delete member
     await prisma.organizationMember.delete({
       where: {
-        id: params.memberId,
-        organization: { slug: params.slug }
+        id: memberId,
+        organization: { slug }
       }
     });
 

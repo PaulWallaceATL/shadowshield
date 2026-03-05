@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import { getEncryptionKey } from '@/lib/env';
 
-const ENCRYPTION_KEY = getEncryptionKey();
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12;
 const AUTH_TAG_LENGTH = 16;
@@ -9,23 +8,26 @@ const SALT_LENGTH = 16;
 const MIN_KEY_LENGTH = 32;
 
 function validateEncryptionKey() {
-  if (!ENCRYPTION_KEY) {
+  const encryptionKey = getEncryptionKey();
+  if (!encryptionKey) {
     throw new Error('ENCRYPTION_KEY environment variable is not set');
   }
 
-  if (ENCRYPTION_KEY.length < MIN_KEY_LENGTH) {
+  if (encryptionKey.length < MIN_KEY_LENGTH) {
     throw new Error(`ENCRYPTION_KEY must be at least ${MIN_KEY_LENGTH} characters long`);
   }
 
   // Ensure the key is valid for the algorithm
   try {
     crypto.createCipheriv(ALGORITHM, 
-      crypto.pbkdf2Sync(ENCRYPTION_KEY, 'test', 1, 32, 'sha256'),
+      crypto.pbkdf2Sync(encryptionKey, 'test', 1, 32, 'sha256'),
       Buffer.alloc(IV_LENGTH)
     );
   } catch (error) {
     throw new Error('Invalid ENCRYPTION_KEY: Unable to create cipher');
   }
+
+  return encryptionKey;
 }
 
 export async function encrypt(text: string): Promise<string> {
@@ -44,12 +46,13 @@ export async function encrypt(text: string): Promise<string> {
   }
 
   try {
+    const encryptionKey = validateEncryptionKey();
     console.log('Encryption - Generating IV and salt');
     const iv = crypto.randomBytes(IV_LENGTH);
     const salt = crypto.randomBytes(SALT_LENGTH);
     
     console.log('Encryption - Deriving key');
-    const key = crypto.pbkdf2Sync(ENCRYPTION_KEY, salt, 100000, 32, 'sha256');
+    const key = crypto.pbkdf2Sync(encryptionKey, salt, 100000, 32, 'sha256');
     
     console.log('Encryption - Creating cipher');
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
@@ -90,7 +93,7 @@ export async function decrypt(encryptedData: string): Promise<string> {
     throw new Error('Encrypted data cannot be empty');
   }
 
-  validateEncryptionKey();
+  const encryptionKey = validateEncryptionKey();
 
   try {
     const combined = Buffer.from(encryptedData, 'base64');
@@ -104,7 +107,7 @@ export async function decrypt(encryptedData: string): Promise<string> {
     const authTag = combined.subarray(SALT_LENGTH + IV_LENGTH, SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH);
     const encrypted = combined.subarray(SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH).toString('hex');
     
-    const key = crypto.pbkdf2Sync(ENCRYPTION_KEY, salt, 100000, 32, 'sha256');
+    const key = crypto.pbkdf2Sync(encryptionKey, salt, 100000, 32, 'sha256');
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
     decipher.setAuthTag(authTag);
     

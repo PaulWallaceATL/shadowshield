@@ -29,7 +29,7 @@ function formatDate(date: Date | string | null): string | null {
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -44,7 +44,7 @@ export async function GET(
       );
     }
 
-    const alertId = params.id;
+    const { id: alertId } = await params;
     if (!alertId) {
       return new NextResponse(
         JSON.stringify({ error: "Alert ID is required" }),
@@ -112,7 +112,7 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -129,8 +129,9 @@ export async function PUT(
 
     const { status, notes, resolvedBy } = await request.json();
 
+    const { id } = await params;
     const alert = await prisma.alert.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status,
         ...(notes && { notes }),

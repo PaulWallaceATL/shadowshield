@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string | string[] } }
+  { params }: { params: Promise<{ id: string | string[] }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -20,7 +20,7 @@ export async function GET(
     const searchTerm = url.searchParams.get('search') || '';
     
     // Fix for NextJS warning - Use Promise.resolve to ensure params is awaited
-    const paramsId = await Promise.resolve(params.id);
+    const { id: paramsId } = await params;
     if (!paramsId) {
       return NextResponse.json({ error: 'Provider ID is required' }, { status: 400 });
     }

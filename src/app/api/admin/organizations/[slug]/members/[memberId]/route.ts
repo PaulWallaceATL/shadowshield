@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { slug: string; memberId: string } }
+  { params }: { params: Promise<{ slug: string; memberId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -13,7 +13,8 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!params?.slug || !params?.memberId) {
+    const { slug, memberId } = await params;
+    if (!slug || !memberId) {
       return NextResponse.json({ error: "Organization slug and member ID are required" }, { status: 400 });
     }
 
@@ -26,8 +27,8 @@ export async function PUT(
     // Update member role
     const member = await prisma.organizationMember.update({
       where: {
-        id: params.memberId,
-        organization: { slug: params.slug }
+        id: memberId,
+        organization: { slug }
       },
       data: { role },
       include: {
@@ -51,7 +52,7 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { slug: string; memberId: string } }
+  { params }: { params: Promise<{ slug: string; memberId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -59,15 +60,16 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!params?.slug || !params?.memberId) {
+    const { slug, memberId } = await params;
+    if (!slug || !memberId) {
       return NextResponse.json({ error: "Organization slug and member ID are required" }, { status: 400 });
     }
 
     // Delete member
     await prisma.organizationMember.delete({
       where: {
-        id: params.memberId,
-        organization: { slug: params.slug }
+        id: memberId,
+        organization: { slug }
       }
     });
 
