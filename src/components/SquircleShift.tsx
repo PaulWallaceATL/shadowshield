@@ -1,8 +1,6 @@
 "use client";
 
-import React, { useRef, useMemo } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import * as THREE from "three";
+import React, { useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 export interface SquircleShiftProps {
@@ -26,15 +24,16 @@ export interface SquircleShiftProps {
   phaseOffset?: number;
 }
 
-const vertexShader = `
+const vertexSrc = `
+attribute vec2 a_position;
 varying vec2 vUv;
 void main() {
-  vUv = uv;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  vUv = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
 }
 `;
 
-const fragmentShader = `
+const fragmentSrc = `
 precision highp float;
 
 uniform float u_time;
@@ -59,8 +58,6 @@ varying vec2 vUv;
 
 void main() {
   float animTime = u_time * u_speed;
-  vec2 resolution = u_resolution;
-
   vec3 colorAccum = vec3(0.0);
   float dist = 0.0;
   float depth = animTime;
@@ -70,7 +67,7 @@ void main() {
 
     vec2 normalizedPos = vUv;
     vec2 centeredPos = vUv;
-    centeredPos.x *= resolution.x / resolution.y;
+    centeredPos.x *= u_resolution.x / u_resolution.y;
     centeredPos -= vec2(u_centerX, u_centerY);
 
     depth += 0.05;
@@ -114,108 +111,14 @@ void main() {
 }
 `;
 
-interface ShaderPlaneProps {
-  speed: number;
-  colorLayers: number;
-  gridFrequency: number;
-  gridIntensity: number;
-  waveSpeed: number;
-  waveIntensity: number;
-  spiralIntensity: number;
-  lineThickness: number;
-  falloff: number;
-  centerX: number;
-  centerY: number;
-  colorTint: string;
-  backgroundColor: string;
-  brightness: number;
-  phaseOffset: number;
+function hexToRGB(hex: string): [number, number, number] {
+  const c = hex.replace("#", "");
+  return [
+    parseInt(c.substring(0, 2), 16) / 255,
+    parseInt(c.substring(2, 4), 16) / 255,
+    parseInt(c.substring(4, 6), 16) / 255,
+  ];
 }
-
-const ShaderPlane: React.FC<ShaderPlaneProps> = ({
-  speed,
-  colorLayers,
-  gridFrequency,
-  gridIntensity,
-  waveSpeed,
-  waveIntensity,
-  spiralIntensity,
-  lineThickness,
-  falloff,
-  centerX,
-  centerY,
-  colorTint,
-  backgroundColor,
-  brightness,
-  phaseOffset,
-}) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-  const { viewport } = useThree();
-
-  const uniforms = useMemo(
-    () => ({
-      u_time: { value: 0 },
-      u_resolution: {
-        value: new THREE.Vector2(viewport.width * 100, viewport.height * 100),
-      },
-      u_speed: { value: speed },
-      u_colorLayers: { value: colorLayers },
-      u_gridFrequency: { value: gridFrequency },
-      u_gridIntensity: { value: gridIntensity },
-      u_waveSpeed: { value: waveSpeed },
-      u_waveIntensity: { value: waveIntensity },
-      u_spiralIntensity: { value: spiralIntensity },
-      u_lineThickness: { value: lineThickness },
-      u_falloff: { value: falloff },
-      u_centerX: { value: centerX },
-      u_centerY: { value: centerY },
-      u_colorTint: { value: new THREE.Color(colorTint) },
-      u_backgroundColor: { value: new THREE.Color(backgroundColor) },
-      u_brightness: { value: brightness },
-      u_phaseOffset: { value: phaseOffset },
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
-
-  useFrame((state) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.u_time.value = state.clock.elapsedTime;
-      materialRef.current.uniforms.u_resolution.value.set(
-        viewport.width * 100,
-        viewport.height * 100,
-      );
-      materialRef.current.uniforms.u_speed.value = speed;
-      materialRef.current.uniforms.u_colorLayers.value = colorLayers;
-      materialRef.current.uniforms.u_gridFrequency.value = gridFrequency;
-      materialRef.current.uniforms.u_gridIntensity.value = gridIntensity;
-      materialRef.current.uniforms.u_waveSpeed.value = waveSpeed;
-      materialRef.current.uniforms.u_waveIntensity.value = waveIntensity;
-      materialRef.current.uniforms.u_spiralIntensity.value = spiralIntensity;
-      materialRef.current.uniforms.u_lineThickness.value = lineThickness;
-      materialRef.current.uniforms.u_falloff.value = falloff;
-      materialRef.current.uniforms.u_centerX.value = centerX;
-      materialRef.current.uniforms.u_centerY.value = centerY;
-      materialRef.current.uniforms.u_colorTint.value.set(colorTint);
-      materialRef.current.uniforms.u_backgroundColor.value.set(backgroundColor);
-      materialRef.current.uniforms.u_brightness.value = brightness;
-      materialRef.current.uniforms.u_phaseOffset.value = phaseOffset;
-    }
-  });
-
-  return (
-    <mesh ref={meshRef} scale={[viewport.width, viewport.height, 1]}>
-      <planeGeometry args={[1, 1]} />
-      <shaderMaterial
-        ref={materialRef}
-        vertexShader={vertexShader}
-        fragmentShader={fragmentShader}
-        uniforms={uniforms}
-      />
-    </mesh>
-  );
-};
 
 const SquircleShift: React.FC<SquircleShiftProps> = ({
   width = "100%",
@@ -237,44 +140,104 @@ const SquircleShift: React.FC<SquircleShiftProps> = ({
   brightness = 1.5,
   phaseOffset = 10,
 }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const gl = canvas.getContext("webgl", { antialias: true, alpha: false });
+    if (!gl) return;
+
+    const compile = (type: number, src: string) => {
+      const s = gl.createShader(type)!;
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      return s;
+    };
+
+    const vs = compile(gl.VERTEX_SHADER, vertexSrc);
+    const fs = compile(gl.FRAGMENT_SHADER, fragmentSrc);
+    const prog = gl.createProgram()!;
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "a_position");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+    const u = (name: string) => gl.getUniformLocation(prog, name);
+
+    const tint = hexToRGB(colorTint);
+    const bg = hexToRGB(backgroundColor);
+
+    let animId: number;
+    const start = performance.now();
+
+    const render = () => {
+      const t = (performance.now() - start) / 1000;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        gl.viewport(0, 0, w, h);
+      }
+
+      gl.uniform1f(u("u_time"), t);
+      gl.uniform2f(u("u_resolution"), w, h);
+      gl.uniform1f(u("u_speed"), speed);
+      gl.uniform1i(u("u_colorLayers"), colorLayers);
+      gl.uniform1f(u("u_gridFrequency"), gridFrequency);
+      gl.uniform1f(u("u_gridIntensity"), gridIntensity);
+      gl.uniform1f(u("u_waveSpeed"), waveSpeed);
+      gl.uniform1f(u("u_waveIntensity"), waveIntensity);
+      gl.uniform1f(u("u_spiralIntensity"), spiralIntensity);
+      gl.uniform1f(u("u_lineThickness"), lineThickness);
+      gl.uniform1f(u("u_falloff"), falloff);
+      gl.uniform1f(u("u_centerX"), centerX);
+      gl.uniform1f(u("u_centerY"), centerY);
+      gl.uniform3f(u("u_colorTint"), tint[0], tint[1], tint[2]);
+      gl.uniform3f(u("u_backgroundColor"), bg[0], bg[1], bg[2]);
+      gl.uniform1f(u("u_brightness"), brightness);
+      gl.uniform1f(u("u_phaseOffset"), phaseOffset);
+
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      animId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      gl.deleteProgram(prog);
+      gl.deleteShader(vs);
+      gl.deleteShader(fs);
+      gl.deleteBuffer(buf);
+    };
+  }, [speed, colorLayers, gridFrequency, gridIntensity, waveSpeed, waveIntensity, spiralIntensity, lineThickness, falloff, centerX, centerY, colorTint, backgroundColor, brightness, phaseOffset]);
+
   const widthStyle = typeof width === "number" ? `${width}px` : width;
   const heightStyle = typeof height === "number" ? `${height}px` : height;
 
   return (
     <div
       className={cn("relative overflow-hidden", className)}
-      style={{
-        width: widthStyle,
-        height: heightStyle,
-      }}
+      style={{ width: widthStyle, height: heightStyle }}
     >
-      <Canvas
-        className="absolute inset-0 h-full w-full"
-        gl={{ antialias: true, alpha: false }}
-        camera={{ position: [0, 0, 1], fov: 75 }}
-      >
-        <ShaderPlane
-          speed={speed}
-          colorLayers={colorLayers}
-          gridFrequency={gridFrequency}
-          gridIntensity={gridIntensity}
-          waveSpeed={waveSpeed}
-          waveIntensity={waveIntensity}
-          spiralIntensity={spiralIntensity}
-          lineThickness={lineThickness}
-          falloff={falloff}
-          centerX={centerX}
-          centerY={centerY}
-          colorTint={colorTint}
-          backgroundColor={backgroundColor}
-          brightness={brightness}
-          phaseOffset={phaseOffset}
-        />
-      </Canvas>
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full"
+        style={{ display: "block" }}
+      />
     </div>
   );
 };
 
 SquircleShift.displayName = "SquircleShift";
-
 export default SquircleShift;
