@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ExclamationTriangleIcon,
@@ -19,11 +19,13 @@ export default function ChangePassword() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-  const { data: session, update } = useSession();
+  const { data: session, status, update } = useSession();
 
-  // Log session data for debugging
-  console.log('Change Password Page - Session:', session);
-  console.log('Must change password flag:', session?.user?.mustChangePassword);
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/auth/signin');
+    }
+  }, [status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
