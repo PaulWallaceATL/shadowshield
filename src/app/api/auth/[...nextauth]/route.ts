@@ -5,6 +5,30 @@ import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import NextAuth from "next-auth";
 
+function getDatabaseTargetForLogs() {
+  const rawUrl = process.env.DATABASE_URL;
+  if (!rawUrl) {
+    return { hasDatabaseUrl: false };
+  }
+
+  try {
+    const parsed = new URL(rawUrl);
+    return {
+      hasDatabaseUrl: true,
+      protocol: parsed.protocol.replace(":", ""),
+      host: parsed.hostname,
+      port: parsed.port || "(default)",
+      database: parsed.pathname.replace("/", "") || "(default)",
+      usernamePreview: parsed.username ? `${parsed.username.slice(0, 6)}...` : "(empty)",
+    };
+  } catch {
+    return {
+      hasDatabaseUrl: true,
+      parseError: "invalid DATABASE_URL format",
+    };
+  }
+}
+
 interface ExtendedUser {
   id: string;
   email: string;
@@ -48,6 +72,7 @@ export const authOptions: NextAuthOptions = {
         } catch (error) {
           // Avoid leaking internal DB connection details to end users.
           console.error("Authentication database error:", error);
+          console.error("Authentication database target:", getDatabaseTargetForLogs());
           throw new Error("Authentication service is temporarily unavailable");
         }
 
