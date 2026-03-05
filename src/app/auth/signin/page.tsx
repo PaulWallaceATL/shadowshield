@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion, animate, useMotionValue } from 'framer-motion';
+import dynamic from 'next/dynamic';
+
+const SquircleShift = dynamic(() => import('@/components/SquircleShift'), { ssr: false });
 
 function AnimatedInput({ 
   value, 
@@ -179,14 +182,19 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background grid pattern */}
       <div className="absolute inset-0">
-        <div 
-          className="absolute inset-0 bg-[#190b37]"
-        />
-        <div 
-          className="absolute inset-0 bg-[linear-gradient(to_right,#2f4faa_1px,transparent_1px),linear-gradient(to_bottom,#2f4faa_1px,transparent_1px)] bg-[size:4rem_4rem]"
-          style={{ opacity: 0.15 }}
+        <SquircleShift
+          width="100%"
+          height="100vh"
+          speed={0.2}
+          colorTint="#6d28d9"
+          backgroundColor="#190b37"
+          brightness={1.2}
+          gridFrequency={20}
+          waveIntensity={0.08}
+          spiralIntensity={0.8}
+          lineThickness={0.04}
+          phaseOffset={8}
         />
       </div>
       
