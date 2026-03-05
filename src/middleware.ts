@@ -43,6 +43,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Allow health check without auth (for DB diagnostics)
+  if (request.nextUrl.pathname === '/api/health') {
+    return NextResponse.next();
+  }
+
   // If not authenticated and not on auth routes, redirect to sign-in
   if (!token && !request.nextUrl.pathname.startsWith('/auth') && !request.nextUrl.pathname.startsWith('/api/auth')) {
     console.log('Not authenticated, redirecting to sign-in');
