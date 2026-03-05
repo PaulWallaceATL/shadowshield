@@ -1,6 +1,5 @@
 'use client';
 
-import { CustomContextMenu } from "@/components/CustomContextMenu";
 import { useEffect } from "react";
 
 export default function ClientLayout({
@@ -24,10 +23,8 @@ export default function ClientLayout({
   }, []);
   
   return (
-    <CustomContextMenu>
-      <div className="min-h-screen w-full bg-[#1a1a1a]">
-        {children}
-      </div>
-    </CustomContextMenu>
+    <div className="min-h-screen w-full bg-[#1a1a1a]">
+      {children}
+    </div>
   );
-} 
+}
