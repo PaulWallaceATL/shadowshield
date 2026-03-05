@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Chat" ADD COLUMN     "isAdminTest" BOOLEAN NOT NULL DEFAULT false,
+ALTER COLUMN "provider" DROP NOT NULL,
+ALTER COLUMN "model" DROP NOT NULL;

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <!-- Black circle background -->
+  <circle cx="16" cy="16" r="16" fill="black"/>
+  
+  <!-- Shield logo centered and scaled -->
+  <g transform="translate(6, 6) scale(0.625)">
+    <!-- Original SSlogo paths here, but in white -->
+    <path d="M16.0001 0L32 8V13.6C32 21.2731 28.0593 28.677 21.3333 32L16.0001 29.3333L10.6668 32C3.94083 28.677 0 21.2731 0 13.6V8L16.0001 0Z" fill="white"/>
+    <path d="M10.6667 32C3.94022 28.677 0 21.2731 0 13.6V8L16 0V29.3333L10.6667 32Z" fill="#CCCCCC"/>
+  </g>
+</svg> 

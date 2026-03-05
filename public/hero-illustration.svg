@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Grid -->
+  <defs>
+    <pattern id="grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#2f4faa" stroke-width="0.5" opacity="0.1"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="600" fill="url(#grid)"/>
+
+  <!-- Central Shield -->
+  <g filter="url(#glow)">
+    <path d="M400 100L600 200V400L400 500L200 400V200L400 100Z" fill="#190b37" stroke="#00a0cb" stroke-width="4"/>
+    <path d="M400 150L550 225V375L400 450L250 375V225L400 150Z" fill="#2f4faa" stroke="#00ffff" stroke-width="2"/>
+  </g>
+
+  <!-- AI Network Nodes -->
+  <g>
+    <!-- Connection Lines -->
+    <path d="M400 300L300 200M400 300L500 200M400 300L300 400M400 300L500 400" stroke="#00a0cb" stroke-width="2" opacity="0.5"/>
+    
+    <!-- Nodes -->
+    <circle cx="300" cy="200" r="20" fill="#190b37" stroke="#00a0cb" stroke-width="2"/>
+    <circle cx="500" cy="200" r="20" fill="#190b37" stroke="#00a0cb" stroke-width="2"/>
+    <circle cx="300" cy="400" r="20" fill="#190b37" stroke="#00a0cb" stroke-width="2"/>
+    <circle cx="500" cy="400" r="20" fill="#190b37" stroke="#00a0cb" stroke-width="2"/>
+    <circle cx="400" cy="300" r="30" fill="#2f4faa" stroke="#00ffff" stroke-width="3"/>
+  </g>
+
+  <!-- Data Flow Animation -->
+  <g>
+    <circle cx="400" cy="300" r="50" fill="none" stroke="#00ffff" stroke-width="2" opacity="0.2">
+      <animate attributeName="r" values="50;70;50" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.2;0.1;0.2" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="400" cy="300" r="80" fill="none" stroke="#00ffff" stroke-width="2" opacity="0.1">
+      <animate attributeName="r" values="80;100;80" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.1;0.05;0.1" dur="3s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Glow Effect -->
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+</svg> 
