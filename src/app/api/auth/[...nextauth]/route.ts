@@ -38,11 +38,18 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Missing credentials");
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        });
+        let user;
+        try {
+          user = await prisma.user.findUnique({
+            where: {
+              email: credentials.email,
+            },
+          });
+        } catch (error) {
+          // Avoid leaking internal DB connection details to end users.
+          console.error("Authentication database error:", error);
+          throw new Error("Authentication service is temporarily unavailable");
+        }
 
         if (!user || !user.password) {
           throw new Error("Invalid credentials");
