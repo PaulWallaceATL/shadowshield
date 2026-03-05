@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, animate, useMotionValue } from 'framer-motion';
 import dynamic from 'next/dynamic';
 
-const SquircleShift = dynamic(() => import('@/components/SquircleShift'), { ssr: false });
+const PerspectiveGrid = dynamic(() => import('@/components/PerspectiveGrid'), { ssr: false });
 
 function AnimatedInput({ 
   value, 
@@ -182,19 +182,18 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      <div className="absolute inset-0">
-        <SquircleShift
+      <div className="absolute inset-0 bg-[#190b37]">
+        <PerspectiveGrid
           width="100%"
           height="100vh"
-          speed={0.2}
-          colorTint="#6d28d9"
-          backgroundColor="#190b37"
-          brightness={1.2}
-          gridFrequency={20}
-          waveIntensity={0.08}
-          spiralIntensity={0.8}
-          lineThickness={0.04}
-          phaseOffset={8}
+          speed={0.8}
+          color="#00a0cb"
+          gridScale={2.0}
+          opacity={0.7}
+          perspective={12}
+          gridLength={10}
+          curve={1.5}
+          bottomFade="#190b37"
         />
       </div>
       

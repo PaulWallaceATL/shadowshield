@@ -54,6 +54,7 @@
     "recharts": "^2.15.1",
     "stream-browserify": "^3.0.0",
     "tailwind-merge": "^3.5.0",
+    "three": "^0.183.2",
     "util": "^0.12.5"
   },
   "devDependencies": {
