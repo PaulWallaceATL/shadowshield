@@ -11,9 +11,8 @@ This project uses Prisma as the schema/source of truth and Supabase as the hoste
 
 Set these in Vercel (Preview + Production):
 
-- **`DATABASE_URL`** — Use the **Direct connection** URI from Supabase (Connection string → Direct connection). Replace `[YOUR-PASSWORD]` with your DB password (URL-encode: `$` → `%24`, `!` → `%21`).
-- **`DIRECT_URL`** — Set to the **same** direct URI (Prisma requires it for migrations).
-- If Vercel cannot reach the DB (e.g. "can't reach database server"), use the **Transaction pooler** URI for `DATABASE_URL` instead (copy it exactly from Supabase → Connection string → Transaction pooler) and keep `DIRECT_URL` as the direct URI.
+- **`DATABASE_URL`** — **On Vercel you must use the Transaction pooler** (direct connection is not reachable from Vercel’s network). In Supabase: **Project Settings → Database → Connection string** → choose **Transaction pooler** → copy the **URI**. Replace `[YOUR-PASSWORD]` with your DB password (URL-encode: `$` → `%24`, `!` → `%21`). Use that string exactly (it includes the correct region, e.g. `aws-0-us-east-1.pooler.supabase.com:6543`).
+- **`DIRECT_URL`** — Use the **Direct connection** URI from the same page (Method: Direct connection). Required for Prisma migrations; not used at runtime on Vercel.
 - `NEXTAUTH_URL`
 - `NEXTAUTH_SECRET`
 - `ENCRYPTION_KEY`
@@ -66,3 +65,8 @@ Behavior:
 
 - You do not need Supabase anon/service-role keys unless you add Supabase JS client features.
 - Keep Prisma as the long-term data access layer; Supabase is your DB infrastructure layer.
+
+## Troubleshooting
+
+- **"Can't reach database server" from Vercel** — Use the **Transaction pooler** URI for `DATABASE_URL` (see above). Do not use the direct connection URI on Vercel.
+- **"Tenant or user not found" with pooler** — Copy the Transaction pooler URI **directly from your Supabase project** (Connection string → Transaction pooler). The region in the host (e.g. `us-east-1`) must match your project; do not guess the region.
