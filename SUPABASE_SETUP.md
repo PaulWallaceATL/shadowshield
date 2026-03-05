@@ -5,14 +5,15 @@ This project uses Prisma as the schema/source of truth and Supabase as the hoste
 ## 1) Create Supabase project
 
 - Create a new Supabase project.
-- In Supabase, open **Project Settings -> Database** and copy the Postgres connection string.
-- Use the **pooler** URL in app runtime for serverless deployments.
+- In Supabase, open **Project Settings → Database** and open the **Connection string** tab.
 
 ## 2) Configure environment variables
 
 Set these in Vercel (Preview + Production):
 
-- `DATABASE_URL`
+- **`DATABASE_URL`** — Use the **Direct connection** URI from Supabase (Connection string → Direct connection). Replace `[YOUR-PASSWORD]` with your DB password (URL-encode: `$` → `%24`, `!` → `%21`).
+- **`DIRECT_URL`** — Set to the **same** direct URI (Prisma requires it for migrations).
+- If Vercel cannot reach the DB (e.g. "can't reach database server"), use the **Transaction pooler** URI for `DATABASE_URL` instead (copy it exactly from Supabase → Connection string → Transaction pooler) and keep `DIRECT_URL` as the direct URI.
 - `NEXTAUTH_URL`
 - `NEXTAUTH_SECRET`
 - `ENCRYPTION_KEY`
