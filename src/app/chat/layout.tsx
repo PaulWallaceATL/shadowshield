@@ -36,13 +36,15 @@ type Chat = {
 };
 
 const modelOptions: Record<Provider, ModelOption[]> = {
-  ANTHROPIC: [
-    { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' },
-    { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet' },
-    { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' },
-  ],
   OPENAI: [
+    { value: 'gpt-4o', label: 'GPT-4o' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
     { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
+  ],
+  ANTHROPIC: [
+    { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4' },
+    { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
+    { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' },
   ],
   GOOGLE: [
     { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
@@ -60,8 +62,8 @@ function ChatLayoutContent({
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const chatId = searchParams?.get('chatId');
-  const initialProvider = (searchParams?.get('provider') as Provider) || 'ANTHROPIC';
-  const initialModel = searchParams?.get('model') || 'claude-3-sonnet-20240229';
+  const initialProvider = (searchParams?.get('provider') as Provider) || 'OPENAI';
+  const initialModel = searchParams?.get('model') || 'gpt-4o-mini';
   
   const [provider, setProvider] = useState<Provider>(initialProvider);
   const [model, setModel] = useState(initialModel);
@@ -188,7 +190,7 @@ function ChatLayoutContent({
     let validProvider = urlProvider;
     if (!urlProvider || !Object.keys(modelOptions).includes(urlProvider)) {
       // Invalid or missing provider, use default
-      validProvider = 'ANTHROPIC';
+      validProvider = 'OPENAI';
       params.set('provider', validProvider);
       shouldUpdateUrl = true;
       console.warn('Invalid provider in URL, using default:', validProvider);

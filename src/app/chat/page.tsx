@@ -168,25 +168,26 @@ const modelNameMapping = {
 
 // Custom model map
 const modelMap: Record<string, string> = {
-  'claude-3-opus-20240229': 'claude-3-opus-20240229',
-  'claude-3-sonnet-20240229': 'claude-3-sonnet-20240229',
-  'claude-3-haiku-20240307': 'claude-3-haiku-20240307',
-  'gpt-4': 'gpt-4',
+  'gpt-4o': 'gpt-4o',
+  'gpt-4o-mini': 'gpt-4o-mini',
   'gpt-3.5-turbo': 'gpt-3.5-turbo',
-  'gemini-pro': 'gemini-pro',
+  'claude-sonnet-4-20250514': 'claude-sonnet-4-20250514',
+  'claude-3-5-sonnet-20241022': 'claude-3-5-sonnet-20241022',
+  'claude-3-haiku-20240307': 'claude-3-haiku-20240307',
+  'gemini-2.0-flash': 'gemini-2.0-flash',
   'gemini-1.5-pro': 'gemini-1.5-pro'
 };
 
 const modelOptions: Record<Provider, ModelOption[]> = {
-  ANTHROPIC: [
-    { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' },
-    { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet' },
-    { value: 'claude-2.1', label: 'Claude 2.1' }
-  ],
   OPENAI: [
-    { value: 'gpt-4-turbo-preview', label: 'GPT-4 Turbo' },
-    { value: 'gpt-4', label: 'GPT-4' },
+    { value: 'gpt-4o', label: 'GPT-4o' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
     { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
+  ],
+  ANTHROPIC: [
+    { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4' },
+    { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
+    { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' }
   ],
   GOOGLE: [
     { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
@@ -913,17 +914,24 @@ const ChatPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMessage = data.error === "Message blocked by DLP rule" 
-          ? `Message blocked by DLP rule: ${data.ruleName} - ${data.reason}`
-          : 'Failed to get response';
+        let errorMessage: string;
+        let flagReason: string;
+
+        if (data.error === "Message blocked by DLP rule") {
+          errorMessage = `Message blocked by DLP rule: ${data.ruleName} - ${data.reason}`;
+          flagReason = `Rule: ${data.ruleName} - ${data.reason}`;
+        } else {
+          errorMessage = data.error || 'Failed to get response';
+          flagReason = data.details || data.error || 'An error occurred';
+        }
 
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
           role: 'assistant',
           content: errorMessage,
           timestamp: new Date(),
-          flagged: true,
-          flagReason: data.ruleName ? `Rule: ${data.ruleName} - ${data.reason}` : data.reason || 'Content violates security policy',
+          flagged: response.status === 403,
+          flagReason,
           status: 'error',
           provider: currentProvider
         }]);
