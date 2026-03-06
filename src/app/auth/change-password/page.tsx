@@ -59,17 +59,13 @@ export default function ChangePassword() {
         throw new Error(data.error || 'Failed to change password');
       }
 
-      // Refresh the JWT so mustChangePassword is updated from the DB
-      await update();
+      // Clear the stale JWT that still has mustChangePassword=true.
+      // Delete the cookie directly so the middleware won't redirect back here.
+      document.cookie = 'next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = '__Secure-next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure';
 
-      const redirectUrl =
-        session?.user?.role === 'USER'
-          ? '/chat'
-          : ['ADMIN', 'SUPER_ADMIN'].includes(session?.user?.role as string)
-            ? '/admin'
-            : '/';
-
-      window.location.href = redirectUrl;
+      // Redirect to signin — fresh login will pick up mustChangePassword=false from DB.
+      window.location.href = '/auth/signin';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setIsLoading(false);
