@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ExclamationTriangleIcon,
@@ -59,13 +59,11 @@ export default function ChangePassword() {
         throw new Error(data.error || 'Failed to change password');
       }
 
-      // Clear the stale JWT that still has mustChangePassword=true.
-      // Delete the cookie directly so the middleware won't redirect back here.
-      document.cookie = 'next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      document.cookie = '__Secure-next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure';
-
-      // Redirect to signin — fresh login will pick up mustChangePassword=false from DB.
-      window.location.href = '/auth/signin';
+      // The JWT cookie still has mustChangePassword=true baked in. We must clear
+      // it via NextAuth's signOut endpoint because the cookie is HttpOnly and
+      // can't be deleted from JS. After sign-out, a fresh login will pick up
+      // mustChangePassword=false from the DB.
+      await signOut({ callbackUrl: '/auth/signin' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setIsLoading(false);
